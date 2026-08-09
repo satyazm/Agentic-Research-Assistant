@@ -10,6 +10,8 @@ plan calls for, wires each task's context to the outputs of the earlier ones,
 and runs a crew of specialist agents ([CrewAI](https://github.com/crewAIInc/crewAI))
 to carry them out.
 
+![The planner routing "explain the concept of LoRA fine-tuning" straight to a single explain_concept task, and the agent's structured answer rendering in the Streamlit chat UI.](docs/screenshot.webp)
+
 ---
 
 ## Why it's interesting

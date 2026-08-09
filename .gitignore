@@ -35,3 +35,6 @@ research_graphrag/
 .vscode/
 .idea/
 .DS_Store
+
+# ── Local agent tooling ──────────────────────────────────────────────────────
+.claude/
