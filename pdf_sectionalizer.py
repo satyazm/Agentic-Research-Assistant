@@ -1,8 +1,9 @@
 # utils/pdf_sectionalizer.py
-import fitz  # PyMuPDF
+import os
 import re
 from pathlib import Path
-import os
+
+import fitz  # PyMuPDF
 
 SECTION_KEYWORDS = [
     "abstract", "introduction", "background", "related work",

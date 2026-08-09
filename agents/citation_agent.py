@@ -1,8 +1,12 @@
 # agents/citation_agent.py
 from crewai import Agent
-from utils import get_llm_client
-from utils import semantic_scholar_citations , semantic_scholar_references , semantic_scholar_search
 
+from utils import (
+    get_llm_client,
+    semantic_scholar_citations,
+    semantic_scholar_references,
+    semantic_scholar_search,
+)
 
 citation_agent = Agent(
     role="Research Citation and Lineage Analyst",

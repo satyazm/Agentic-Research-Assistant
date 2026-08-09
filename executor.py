@@ -1,7 +1,6 @@
-# executor.py
 from crewai import Crew, Process
+
 from task_registry import TASK_REGISTRY
-from agents.manager_agent import make_manager_agent
 
 
 def resolve_inputs(inputs: dict, context: dict) -> dict:
@@ -19,8 +18,8 @@ def resolve_inputs(inputs: dict, context: dict) -> dict:
     return resolved
 
 
-def execute_plan(plan: dict, initial_context: dict = {}) -> str:
-    context = {**initial_context}
+def execute_plan(plan: dict, initial_context: dict | None = None) -> str:
+    context = {**(initial_context or {})}
     built_tasks = []
     task_index = {}     # task_id → Task object, used for context wiring
 

@@ -1,11 +1,12 @@
 # agents/literature_agent.py
 from crewai import Agent
-from utils import get_llm_client
-from tools.semantic_scholar import (
-    s2_literature_search,
-    s2_find_seminal,
-    s2_recent_advances,)
 
+from tools.semantic_scholar import (
+    s2_find_seminal,
+    s2_literature_search,
+    s2_recent_advances,
+)
+from utils import get_llm_client
 
 literature_agent = Agent(
     role="Literature Review Specialist",

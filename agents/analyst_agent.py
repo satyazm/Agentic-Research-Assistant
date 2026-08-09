@@ -1,19 +1,20 @@
-from crewai import Agent , Task 
-from utils import get_llm_client 
+
+from crewai import Agent
 from pydantic import BaseModel
-from typing import List
+
+from utils import get_llm_client
 
 llm_client = get_llm_client()
 
 class Theme(BaseModel):
     name: str
-    papers: List[str]
+    papers: list[str]
     description: str
 
 class AnalysisOutput(BaseModel):
-    themes: List[Theme]
-    trends: List[str]
-    gaps: List[str]
+    themes: list[Theme]
+    trends: list[str]
+    gaps: list[str]
 
 
 analyst_agent = Agent(

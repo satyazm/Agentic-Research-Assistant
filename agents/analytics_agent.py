@@ -1,4 +1,5 @@
 from crewai import Agent
+
 from utils import get_llm_client
 
 analytics_agent = Agent(

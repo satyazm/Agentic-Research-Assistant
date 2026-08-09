@@ -1,7 +1,7 @@
 [project]
 name = "agentic_deep_researcher"
 version = "0.1.0"
-description = "Deep Research Agent using Crew AI and Web Search API"
+description = "An agentic research assistant that plans and executes multi-agent workflows over arXiv and Semantic Scholar."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -9,23 +9,35 @@ dependencies = [
     "crewai-tools==0.76.0",
     "requests>=2.31.0",
     "mcp>=1.6.0",
-    "openai>=2.15.0",
     "python-dotenv>=1.1.0",
     "streamlit>=1.44.1",
-    "linkup>=0.1.0",
     "pydantic>=2.0.0",
     "setuptools>=82.0.1",
-    "duckduckgo-search>=8.1.1",
-    "google>=3.0.0",
     "google-genai>=1.74.0",
     "matplotlib>=3.10.9",
     "pymupdf>=1.27.2.3",
-    "networkx>=3.6.1",
-    "neo4j>=6.1.0",
-    "langchain-groq>=1.1.2",
     "litellm>=1.83.0",
     "arxiv>=3.0.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.6.0",
+]
+
 [tool.setuptools]
-py-modules = ["agents", "app", "server"]
+py-modules = ["agentic_crew", "planner", "executor", "task_registry", "utils", "chart_runner", "pdf_sectionalizer", "server"]
+packages = ["agents", "tools"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# E/F = pycodestyle + pyflakes, I = import sorting, UP = pyupgrade, B = bugbear.
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]  # long lines are common in agent prompts; don't hard-fail on them.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,24 +1,28 @@
-import asyncio
-from mcp.server.fastmcp import FastMCP
-from agents import run_research
+"""MCP server exposing the research assistant as a single callable tool.
 
-# Create FastMCP instance
-mcp = FastMCP("crew_research")
+Run with:  python server.py  (communicates over stdio)
+"""
+
+from mcp.server.fastmcp import FastMCP
+
+from agentic_crew import run
+
+mcp = FastMCP("agentic_research_assistant")
+
 
 @mcp.tool()
-async def crew_research(query: str) -> str:
-    """Run CrewAI-based research system for given user query. Can do both standard and deep web search.
+async def research(query: str) -> str:
+    """Plan and run the multi-agent research workflow for a query.
 
     Args:
-        query (str): The research query or question.
+        query: The research question or request.
 
     Returns:
-        str: The research response from the CrewAI pipeline.
+        The final synthesized research output.
     """
-    result = run_research(query)
+    result = run(query)
     return str(result) if result else "No results returned"
 
 
-# Run the server
 if __name__ == "__main__":
     mcp.run(transport="stdio")

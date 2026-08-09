@@ -1,4 +1,5 @@
-from crewai import Agent 
+from crewai import Agent
+
 from utils import get_llm_client
 
 llm_client = get_llm_client()

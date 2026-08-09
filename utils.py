@@ -1,35 +1,19 @@
-import sys
+import io
 import os
 import re
+import sys
+import time
 import uuid
-import io
-from typing import List
-from crewai.tools import tool , BaseTool 
-import requests
 import xml.etree.ElementTree as ET
+from datetime import datetime
+
+import arxiv
+import requests
+from crewai.tools import BaseTool, tool
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
-from typing import Type, Any
-import json
-from older_version.graphdb import Neo4jGraphDB
-import fitz
-import time 
-load_dotenv()
-import arxiv
-import os
-from langchain_groq import ChatGroq
-from datetime import datetime
-# Set your API key
-os.environ["GROQ_API_KEY"] = "your_groq_api_key_here"
 
-# Initialize the LLM
-llm = ChatGroq(
-    model="compound-beta",
-    temperature=0,
-    max_tokens=None,
-    timeout=None,
-    max_retries=2
-)
+load_dotenv()
 
 def parse_time_constraint(query: str) -> tuple[str, int | None, int | None, str]:
     """
@@ -151,7 +135,7 @@ def arxiv_literature_search(query: str) -> str:
         top_papers = filtered[:8]
 
         output = [
-            f"Literature Review Search Results",
+            "Literature Review Search Results",
             f"Query: '{clean_query}' | Time filter: {time_desc}",
             f"Papers found: {len(filtered)} | Showing top: {len(top_papers)}\n"
         ]
@@ -280,7 +264,7 @@ def arxiv_recent_advances(topic: str) -> str:
     except Exception as e:
         return f"Recent advances search failed: {str(e)}"
 @tool("arXiv Search")
-def arxiv_search(query: str, max_results: int = 5) -> List[dict]:
+def arxiv_search(query: str, max_results: int = 5) -> list[dict]:
     """
     Search arXiv and download the PDFs to a local 'papers' folder.
     """
@@ -357,7 +341,7 @@ class PythonPlottingExecutorTool(BaseTool):
         "It must NOT contain plt.show().\n"
         "The code MUST use plt.savefig('unique_filename.png')"
     )
-    args_schema: Type[BaseModel] = PlottingInput
+    args_schema: type[BaseModel] = PlottingInput
 
     def _run(self, plotting_code: str) -> str:
         import matplotlib
@@ -420,95 +404,11 @@ class PythonPlottingExecutorTool(BaseTool):
 # Instantiate the tool here so your other files can still import 'execute_plotting_code' normally!
 execute_plotting_code = PythonPlottingExecutorTool()
 
-class GraphRAGInput(BaseModel):
-    papers: str = Field(default="papers", description="The local directory path where the PDF research papers are stored.")
 
-class GraphRAGTool(BaseTool):
-    name: str = "GraphRAG Builder"
-    description: str = (
-        "Reads downloaded PDF files from the 'papers' directory, extracts entities "
-        "and relationships, and persists them to Neo4j."
-    )
-    
-    def _run(self, query: str = None) -> str:
-        # 1. Define the path to your downloaded papers
-        papers_dir = "papers"
-        if not os.path.exists(papers_dir):
-            return "Error: No 'papers' directory found. Run the searcher first."
-
-        db = Neo4jGraphDB()
-        pdf_files = [f for f in os.listdir(papers_dir) if f.endswith(".pdf")]
-        
-        if not pdf_files:
-            return "No PDF files found in the papers directory."
-
-        nodes, edges = {}, []
-
-        for filename in pdf_files:
-            file_path = os.path.join(papers_dir, filename)
-            
-            # 2. Extract full text from PDF
-            full_text = ""
-            try:
-                with fitz.open(file_path) as doc:
-                    for page in doc:
-                        full_text += page.get_text()
-            except Exception as e:
-                print(f"Failed to read {filename}: {e}")
-                continue
-
-            # 3. Create the Paper Node
-            # We use the filename as a proxy for the ID if metadata isn't passed
-            paper_id = filename.replace(".pdf", "").replace(" ", "_")
-            nodes[paper_id] = {
-                "type": "paper",
-                "label": filename.replace(".pdf", ""),
-                "content_preview": full_text[:500] # Storing a snippet for context
-            }
-
-            # 4. Extract rich concepts from FULL TEXT
-            # Use your _extract_concepts function here
-            # Note: For full text, you might want to chunk it or use an LLM
-            concepts = _extract_concepts(full_text) 
-            
-            for concept in concepts:
-                c_id = concept.replace(" ", "_").lower()
-                nodes.setdefault(c_id, {"type": "concept", "label": concept})
-                edges.append({
-                    "source": paper_id,
-                    "target": c_id,
-                    "relation": "discusses_in_depth",
-                    "evidence": filename,
-                })
-
-        # 5. Persist to Neo4j
-        graph = {"nodes": nodes, "edges": edges}
-        result = db.store_graph(graph)
-        summary = db.get_full_graph_summary()
-        db.close()
-
-        return f"Successfully processed {len(pdf_files)} papers.\n{result}\n\nSummary:\n{summary}"
-    
-class GraphQueryInput(BaseModel):
-    concept: str = Field(..., description="Concept or topic to look up in the graph")
-
-class GraphQueryTool(BaseTool):
-    name: str = "Graph Query Tool"
-    description: str = (
-        "Queries the Neo4j knowledge graph for relationships around a given concept. "
-        "Use this to find connected papers, authors, and related concepts."
-    )
-    args_schema: Type[BaseModel] = GraphQueryInput
-
-    def _run(self, concept: str) -> str:
-        db = Neo4jGraphDB()
-        result = db.query_graph(concept)
-        db.close()
-        return result
-    
 def get_llm_client():
-    from crewai import LLM
     import os
+
+    from crewai import LLM
 
     return LLM(
         # Adding the provider name explicitly helps CrewAI bridge to LiteLLM
@@ -827,8 +727,8 @@ if __name__ == "__main__":
             print(f"   Summary: {paper['summary']}")
             print(f"   Link: {paper['link']}\n")
     elif which_test == 2:
-        from google import genai
         from dotenv import load_dotenv
+        from google import genai
         # Automatically picks up GEMINI_API_KEY from environment
         load_dotenv()
         client = genai.Client()

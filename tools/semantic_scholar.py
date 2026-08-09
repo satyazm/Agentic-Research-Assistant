@@ -1,7 +1,10 @@
 import re
 from datetime import datetime
-from crewai.tools import tool , BaseTool 
+
+from crewai.tools import tool
+
 from utils import s2_get
+
 BASE = "https://api.semanticscholar.org/graph/v1"
 INTENT_WORDS = [
     "top cited", "most cited", "highly cited", "best", "top",

@@ -1,6 +1,6 @@
 from crewai import Agent
-from utils import get_llm_client , LocalFolderReader , LocalFileReader 
 
+from utils import LocalFileReader, LocalFolderReader, get_llm_client
 
 llm_client = get_llm_client()
 research_analyst = Agent(

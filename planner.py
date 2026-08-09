@@ -1,47 +1,9 @@
-# planner.py
 import json
 
-from crewai.project import llm
-from utils import get_llm_client
 from task_registry import TASK_DESCRIPTIONS
+from utils import get_llm_client
 
 client = get_llm_client()
-
-# PLANNER_PROMPT = f"""
-# You are a research workflow planner. Given a user request, produce a JSON execution plan.
-
-# Available tasks:
-# {json.dumps(TASK_DESCRIPTIONS, indent=2)}
-
-# Rules:
-# - Only include tasks that are actually needed
-# - Tasks run in order; later tasks can use outputs of earlier ones
-# - Inputs must match what each task needs (query, file_name, paper_id, focus)
-# - Be minimal — never add tasks the user did not ask for
-# - If the user uploaded a file, read_local_file must come before summarize or analyze_and_synthesize
-# - generate_hypotheses ALWAYS requires a 'query' input — use the user's topic as the value
-# - download_paper ALWAYS requires a 'paper_id' input — use the ArXiv ID from search results or the user's provided identifier
-# - If the user asks for a summary or analysis without uploading a file, you must first search for relevant papers, then download the most relevant one, and then read it before summarizing or analyzing.
-# - find_citations ALWAYS requires a 'query' input — use the paper name the user mentioned
-# - find_references ALWAYS requires a 'query' input — use the paper name the user mentioned
-# - You MUST use task names EXACTLY as they appear in the available tasks list above
-# - Do NOT invent task names or paraphrase them
-
-# Output ONLY valid JSON, no markdown, no explanation:
-# {{
-#   "intent_summary": "brief description of what the user wants",
-#   "tasks": [
-#     {{
-#       "task_id": 1,
-#       "name": "task_name_from_registry",
-#       "reason": "why this task is needed",
-#       "inputs": {{
-#         "key": "value or $task_N_output to reference a prior result"
-#       }}
-#     }}
-#   ]
-# }}
-# """
 
 
 PLANNER_PROMPT = f"""

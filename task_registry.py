@@ -1,18 +1,16 @@
-from altair import when
 from crewai import Task
-from agents.synthesis_agent import research_analyst
-from agents.search_agent import web_search
-from agents.hypothesis_agent import hypothesis_agent
+
 from agents.analyst_agent import analyst_agent
-from agents.visualization_agent import visualization_agent
 from agents.analytics_agent import analytics_agent
-from agents.explanation_agent import explainer_agent
-from agents.concept_explainer_agent import concept_explainer_agent
 from agents.citation_agent import citation_agent
+from agents.concept_explainer_agent import concept_explainer_agent
+from agents.explanation_agent import explainer_agent
+from agents.hypothesis_agent import hypothesis_agent
 from agents.literature_agent import literature_agent
-
+from agents.search_agent import web_search
+from agents.synthesis_agent import research_analyst
+from agents.visualization_agent import visualization_agent
 from utils import arxiv_search
-
 
 
 def make_search_task(query: str, **kwargs) -> Task:
