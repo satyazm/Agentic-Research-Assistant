@@ -3,34 +3,28 @@ from crewai import Agent
 from utils import get_llm_client
 
 
-def make_manager_agent(available_agents: list) -> Agent:
-    """
-    Called by executor.py after the task list is built.
-    Receives only the agents actually participating in this run,
-    so the manager never tries to delegate to a non-existent agent.
-    """
+def make_manager_agent() -> Agent:
+    """Build the quality-control judge used to gate every task's output.
 
-    # Build a readable roster from the live agent list
-    agent_roster = "\n".join([
-        f"- {agent.role}: {agent.goal}"
-        for agent in available_agents
-    ])
-
+    executor.py attaches this agent to each task as a CrewAI ``guardrail``
+    (see guardrails.py): once a specialist agent produces an output, this
+    judge checks it against that task's own expected_output before the
+    pipeline is allowed to treat it as done, sending it back for a bounded
+    number of retries if it falls short.
+    """
     return Agent(
-        role="Research Operations Director",
+        role="Research Quality Judge",
         goal=(
-            "Oversee task execution. Delegate every task to the correct agent "
-            "from the roster below. Review outputs before marking tasks complete.\n\n"
-            "Rules:\n"
-            "- NEVER perform tasks yourself\n"
-            "- ONLY delegate to agents listed in your roster\n"
-            "- Validate each output before proceeding to the next task\n"
+            "Judge whether a completed task's output actually satisfies "
+            "what was asked of it. Be strict about missing, off-topic, or "
+            "fabricated content. Be lenient about style, phrasing, and length."
         ),
         backstory=(
-            "You are a strict research dispatcher. You assign work and validate results.\n\n"
-            f"Agents available to you right now:\n{agent_roster}\n\n"
-            "You must only delegate to agents on this list."
+            "You are the last checkpoint before a research team's work ships. "
+            "You never do the research yourself — you only decide whether a "
+            "finished piece of work is good enough to pass, and if not, say "
+            "exactly what's missing so it can be redone correctly."
         ),
-        allow_delegation=True,
+        allow_delegation=False,
         llm=get_llm_client(),
     )

@@ -1,5 +1,7 @@
 from crewai import Crew, Process
 
+from agents.manager_agent import make_manager_agent
+from guardrails import make_output_guardrail
 from task_registry import TASK_REGISTRY
 
 
@@ -26,6 +28,11 @@ def execute_plan(plan: dict, initial_context: dict | None = None) -> str:
     print(f"\nIntent: {plan['intent_summary']}")
     print(f" Tasks planned: {len(plan['tasks'])}\n")
 
+    # One quality judge reviews every task's output before it's accepted.
+    # A failing verdict sends the task back to its own agent with feedback,
+    # bounded to one retry so a stuck judge can't loop a request forever.
+    judge = make_manager_agent()
+
     for step in plan["tasks"]:
         task_id = step["task_id"]
         name = step["name"]
@@ -44,6 +51,9 @@ def execute_plan(plan: dict, initial_context: dict | None = None) -> str:
         if prior_tasks:
             task.context = prior_tasks
 
+        task.guardrail = make_output_guardrail(judge, task.description, task.expected_output)
+        task.guardrail_max_retries = 1
+
         built_tasks.append(task)
         task_index[task_id] = task
 
@@ -52,10 +62,6 @@ def execute_plan(plan: dict, initial_context: dict | None = None) -> str:
     # Collect unique agents from the built tasks only
     # (no unused agents are loaded into the crew)
     agents = list({task.agent for task in built_tasks})
-
-    # Build manager with awareness of exactly which agents are in this crew
-
-
 
     crew = Crew(
         agents=agents,

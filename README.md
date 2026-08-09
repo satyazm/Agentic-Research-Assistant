@@ -49,6 +49,9 @@ flowchart TD
 
     C --> Registry
     Registry --> Tools[(arXiv · Semantic Scholar · PyMuPDF · matplotlib)]
+    Registry -->|each task's output| J{Quality Judge<br/>guardrail}
+    J -->|fails| Registry
+    J -->|passes| C
     C --> R[Synthesized answer + optional chart]
     R --> UI[Streamlit chat UI]
 ```
@@ -60,12 +63,20 @@ flowchart TD
 2. **Execute** — [`executor.py`](executor.py) instantiates only those tasks from
    [`task_registry.py`](task_registry.py), resolves `$task_N_output` references
    between steps, and runs them sequentially.
-3. **Answer** — the final crew output is rendered in the Streamlit UI, with any
+3. **Judge** — [`guardrails.py`](guardrails.py) attaches a quality-control agent
+   ([`agents/manager_agent.py`](agents/manager_agent.py)) to every task as a
+   CrewAI `guardrail`. It checks each output against that task's own
+   `expected_output` before accepting it; a failing verdict sends the task back
+   to the same agent with concrete feedback, bounded to one retry.
+4. **Answer** — the final crew output is rendered in the Streamlit UI, with any
    matplotlib chart the visualization agent produced.
 
 ## Features
 
 - 🧠 **LLM task planning** grounded in a fixed task registry
+- 🧑‍⚖️ **Self-correcting execution** — a quality-judge agent gates every task's
+  output against its own success criteria and sends failures back for a
+  bounded retry, instead of trusting whatever the first pass produced
 - 🔗 **Context passing** between steps (`$task_N_output` references)
 - 📚 **arXiv search & literature review** with natural-language time filters
   (*"after 2020"*, *"last 3 years"*, *"between 2019 and 2022"*)
@@ -81,8 +92,8 @@ flowchart TD
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-git clone https://github.com/SomanGaurav/Agentic_Research_Assistant.git
-cd Agentic_Research_Assistant
+git clone https://github.com/satyazm/Agentic-Research-Assistant.git
+cd Agentic-Research-Assistant
 
 # 1. Configure secrets
 cp .env.example .env      # then edit .env and add your Gemini API key
@@ -115,13 +126,14 @@ uv run python agentic_crew.py
 ├── planner.py          # LLM planner → JSON execution plan
 ├── executor.py         # Builds & runs the CrewAI crew from a plan
 ├── task_registry.py    # Task factories + descriptions the planner sees
-├── agents/             # Specialist CrewAI agents (search, analysis, …)
-├── tools/              # Semantic Scholar client
+├── guardrails.py       # Judge-and-retry guardrail attached to every task
+├── agents/             # Specialist CrewAI agents (search, analysis, judge, …)
+├── tools/               # Semantic Scholar client
 ├── utils.py            # arXiv tools, PDF readers, LLM client, plotting
 ├── chart_runner.py     # Safely extracts & runs matplotlib code from output
 ├── ui.py               # Streamlit chat UI
 ├── server.py           # MCP server wrapper
-└── tests/              # Pytest suite (planning logic, parsing, chart runner)
+└── tests/              # Pytest suite (planning, guardrails, parsing, chart runner)
 ```
 
 ## Development
@@ -137,8 +149,10 @@ CI runs both on every push and pull request — see
 
 ## Roadmap
 
-- [ ] Output evaluation harness (citation grounding, planner accuracy)
-- [ ] Verify every cited paper traces back to a real search result (anti-hallucination)
+- [x] Self-correcting execution — quality-judge guardrail with bounded retry
+- [ ] Output evaluation harness (gold queries, planner accuracy, regression tests)
+- [ ] Verify every cited paper traces back to a real search result (the judge
+      checks task completeness, not per-citation factual grounding yet)
 - [ ] Persistent memory / RAG over previously read papers
 - [ ] Tracing UI showing the plan and each agent's step
 
